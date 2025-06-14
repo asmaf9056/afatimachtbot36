@@ -7,6 +7,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 
+# Page config MUST be first
+st.set_page_config(page_title="Datacrumbs Chatbot", page_icon="🤖")
+
 # Load API key from secrets
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
@@ -75,9 +78,6 @@ else:
     Website: datacrumbs.org
     Email: help@datacrumbs.org
     """
-
-# Page config
-st.set_page_config(page_title="Datacrumbs Chatbot", page_icon="🤖")
 
 # Simple UI
 st.title("Datacrumbs Chatbot")
