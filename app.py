@@ -10,17 +10,27 @@ from langchain.schema import AIMessage, HumanMessage, SystemMessage
 # Page config MUST be first
 st.set_page_config(page_title="Datacrumbs Chatbot", page_icon="🤖")
 
-# Load API key from secrets
+# Load API key from secrets or environment
 try:
-    api_key = st.secrets["GOOGLE_API_KEY"]  # Changed from GEMINI_API_KEY
+    # Try secrets first
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except KeyError:
+    # Fall back to environment variable
+    import os
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        st.error("❌ GOOGLE_API_KEY not found in secrets or environment variables.")
+        llm = None
+    else:
+        st.info("✅ Using API key from environment variable")
+if api_key:
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-pro",  # Changed from gemini-pro
         google_api_key=api_key,
         temperature=0.5
     )
     st.success("✅ Gemini API connected successfully!")
-except KeyError:
-    st.error("❌ GOOGLE_API_KEY not found in secrets. Please add it to your secrets.toml file.")
+else:
     llm = None
 except Exception as e:
     st.error(f"❌ Error initializing Gemini API: {str(e)}")
