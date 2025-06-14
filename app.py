@@ -18,14 +18,12 @@ llm = None
 if api_key:
     try:
         llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-pro",
+            model="gemini-1.5-flash",  # Faster model
             google_api_key=api_key,
-            temperature=0.7,
-            timeout=10  # Add timeout
+            temperature=0.3,  # Lower temperature for faster, more consistent responses
+            timeout=5,  # Reduced timeout
+            max_tokens=300  # Limit response length for speed
         )
-        # Test the connection
-        test_msg = [SystemMessage(content="Test"), HumanMessage(content="Hello")]
-        llm(test_msg)
         st.success("✅ AI assistant ready!")
     except Exception as e:
         st.error(f"❌ AI connection failed: {str(e)}")
@@ -63,43 +61,51 @@ CONTACT:
 def get_fallback_response(prompt):
     prompt_lower = prompt.lower().strip()
     
-    # Helper 
+    # Fast keyword matching with shorter, more targeted responses
+    
+    # General information/details questions
+    if any(word in prompt_lower for word in ["info", "information", "details", "tell me about", "what is", "explain", "describe"]):
+        return "📋 **Datacrumbs Overview:**\n\n🎯 **7 Tech Bootcamps Available:**\n• Data Science • Analytics • Business Intelligence\n• GenAI • Python • SQL • Excel\n\n✨ **Key Features:** Industry curriculum, real projects, certificates, job support, flexible schedule\n\n💬 Ask about: pricing, duration, enrollment, or specific courses!"
     
     # Pricing questions
-    elif any(word in prompt_lower for word in ["price", "cost", "fee", "payment"]):
-        return "💰 **Pricing Information:**\nWe offer competitive pricing with flexible payment plans. Costs vary by course and duration. We also provide:\n- Early bird discounts\n- Student discounts\n- Installment payment options\n- Scholarship opportunities\n\nContact us at help@datacrumbs.org or fill out our enrollment form for current pricing!"
+    elif any(word in prompt_lower for word in ["price", "cost", "fee", "payment", "money", "expensive", "cheap", "affordable"]):
+        return "💰 **Quick Pricing Info:**\n✅ Competitive rates with payment plans\n✅ Student & early bird discounts\n✅ Scholarship opportunities\n\n📧 **Get Exact Pricing:** help@datacrumbs.org\n🚀 **Ready to enroll?** I can show you the form!"
     
-    # Duration questions
-    elif any(word in prompt_lower for word in ["duration", "time", "long", "weeks", "months"]):
-        return "⏰ **Course Duration:**\n- Data Science Bootcamp: 12-16 weeks\n- Data Analytics Bootcamp: 8-12 weeks\n- Business Intelligence: 10-14 weeks\n- GenAI Bootcamp: 6-8 weeks\n- Python Bootcamp: 8-10 weeks\n- SQL Zero to Hero: 4-6 weeks\n- Excel for Everyone: 3-4 weeks\n\nAll courses include flexible scheduling options and lifetime access to materials!"
+    # Duration and timing questions
+    elif any(word in prompt_lower for word in ["duration", "time", "long", "weeks", "months", "timings", "schedule", "when", "directions", "time of day", "timestamp", "hours"]):
+        return "⏰ **Course Duration:**\n• Data Science: 12-16 weeks\n• Analytics: 8-12 weeks\n• Python: 8-10 weeks\n• GenAI: 6-8 weeks\n• SQL: 4-6 weeks\n• Excel: 3-4 weeks\n\n🕐 **Flexible Schedule:** Weekend & evening batches available!"
     
     # Prerequisites questions
-    elif any(word in prompt_lower for word in ["prerequisite", "requirement", "beginner", "experience"]):
-        return "✅ **Prerequisites:**\nMost of our courses are designed for beginners! No prior experience required for:\n- Excel for Everyone\n- SQL Zero to Hero\n- Ultimate Python Bootcamp\n- GenAI Bootcamp\n\nFor Data Science and Analytics bootcamps, basic computer skills are helpful but we'll teach you everything from scratch. We welcome learners from all backgrounds!"
+    elif any(word in prompt_lower for word in ["prerequisite", "requirement", "beginner", "experience", "qualification", "background"]):
+        return "✅ **Prerequisites:**\n🟢 **Beginner-Friendly:** Excel, SQL, Python, GenAI\n🟡 **Basic Skills Helpful:** Data Science, Analytics\n\n🎯 **Bottom Line:** We teach from scratch! All backgrounds welcome."
     
     # Certificate questions
-    elif any(word in prompt_lower for word in ["certificate", "certification", "credential"]):
-        return "🏆 **Certification:**\nYes! You'll receive an industry-recognized certificate upon successful completion of any bootcamp. Our certificates are:\n- Verified and authentic\n- Recognized by employers\n- Include your project portfolio\n- Boost your resume and LinkedIn profile\n- Demonstrate practical skills to employers"
+    elif any(word in prompt_lower for word in ["certificate", "certification", "credential", "diploma", "degree"]):
+        return "🏆 **Industry Certificates:**\n✅ Verified & employer-recognized\n✅ Includes project portfolio\n✅ Boosts resume & LinkedIn\n\n🎯 **Awarded upon completion** of any bootcamp!"
     
     # Job/career questions
-    elif any(word in prompt_lower for word in ["job", "career", "placement", "employment", "salary"]):
-        return "💼 **Career Support:**\nWe provide comprehensive career assistance:\n- Resume building and optimization\n- Interview preparation and mock interviews\n- Job placement assistance with partner companies\n- LinkedIn profile optimization\n- Portfolio development guidance\n- Networking opportunities\n- Salary negotiation tips\n\nMany graduates land roles within 3-6 months of completion!"
+    elif any(word in prompt_lower for word in ["job", "career", "placement", "employment", "salary", "hiring", "work", "opportunity"]):
+        return "💼 **Career Support:**\n✅ Resume building & interview prep\n✅ Job placement with partners\n✅ LinkedIn optimization\n✅ Portfolio development\n\n📈 **Success Rate:** Most graduates get jobs within 3-6 months!"
     
     # Contact questions
-    elif any(word in prompt_lower for word in ["contact", "reach", "support", "help"]):
-        return "📞 **Contact Us:**\n- Website: datacrumbs.org\n- Email: help@datacrumbs.org\n- WhatsApp support available\n- Live chat on website\n- Social media: Follow us for updates and tips\n\nOur support team responds within 24 hours!"
+    elif any(word in prompt_lower for word in ["contact", "reach", "support", "help", "phone", "email", "whatsapp"]):
+        return "📞 **Contact Info:**\n🌐 Website: datacrumbs.org\n📧 Email: help@datacrumbs.org\n💬 WhatsApp support available\n\n⚡ **Response Time:** Within 24 hours!"
+    
+    # Location and directions
+    elif any(word in prompt_lower for word in ["location", "address", "where", "directions", "map", "office"]):
+        return "📍 **Learning Options:**\n🖥️ **Online:** Live sessions + recordings\n🏢 **Offline:** Contact for locations\n\n📧 **Directions:** help@datacrumbs.org\n💬 **WhatsApp:** Available for quick help!"
     
     # Enrollment questions
-    elif any(word in prompt_lower for word in ["how to start", "begin", "apply", "admission"]):
-        return "🚀 **How to Get Started:**\n1. Choose your bootcamp based on career goals\n2. Fill out our enrollment form\n3. Schedule a consultation call\n4. Complete payment and secure your spot\n5. Receive course materials and start learning!\n\nReady to begin? I can show you our enrollment form!"
+    elif any(word in prompt_lower for word in ["how to start", "begin", "apply", "admission", "enroll", "register", "sign up", "join"]):
+        return "🚀 **Quick Start Process:**\n1️⃣ Choose your course\n2️⃣ Fill enrollment form\n3️⃣ Schedule consultation\n4️⃣ Make payment\n5️⃣ Start learning!\n\n🎯 **Ready?** I can open the enrollment form now!"
     
     # General greeting
-    elif any(word in prompt_lower for word in ["hello", "hi", "hey", "good morning", "good afternoon"]):
-        return "👋 Hello! Welcome to Datacrumbs! I'm here to help you find the perfect bootcamp to advance your career in data science, analytics, or tech. What would you like to know about our courses?"
+    elif any(word in prompt_lower for word in ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]):
+        return "👋 **Welcome to Datacrumbs!** \n\nI'm your AI assistant for tech bootcamps! \n\n🎯 **Quick Help:** Ask about courses, pricing, enrollment, or schedules\n💡 **Popular:** Data Science, Python, GenAI bootcamps"
     
     # Default response
     else:
-        return f"🤖 **I'm here to help with Datacrumbs!** I can provide information about:\n\n- Our 7 bootcamp programs\n- Course details, duration, and curriculum\n- Pricing and payment options\n- Prerequisites and requirements\n- Career support and job placement\n- Enrollment process\n\nWhat specific information can I help you with today?\n\n{datacrumbs_info}"
+        return "🤖 **I can help with:**\n\n🎓 **7 Bootcamps:** Data Science, Analytics, BI, GenAI, Python, SQL, Excel\n💰 **Pricing & Payment Plans**\n⏰ **Duration & Schedules**\n🚀 **Enrollment Process**\n💼 **Career Support**\n\n❓ **What would you like to know?**"
 
 # Simple UI
 st.title("🤖 Datacrumbs Chatbot")
@@ -148,18 +154,13 @@ if prompt:
             try:
                 # Show thinking indicator
                 with st.spinner("🤔 Thinking..."):
-                    system_msg = SystemMessage(content=f"""
-You are an expert virtual assistant for Datacrumbs education platform. Be helpful, friendly, and informative.
+                    system_msg = SystemMessage(content=f"""You are a friendly Datacrumbs assistant. Keep responses under 200 words, use emojis, be enthusiastic about tech education.
 
-{datacrumbs_info}
+COURSES: Data Science, Analytics, BI, GenAI, Python, SQL, Excel bootcamps
+FEATURES: Industry curriculum, real projects, certificates, job support
+CONTACT: help@datacrumbs.org, datacrumbs.org
 
-Guidelines:
-- Give detailed, helpful responses about courses and data science topics
-- Be enthusiastic about learning and career growth
-- If someone asks about enrollment/registration, mention you can help with the enrollment form
-- Use emojis and formatting to make responses engaging
-- Always provide actionable next steps
-""")
+Be concise and actionable.""")
                     
                     messages = [system_msg, HumanMessage(content=prompt)]
                     response = llm(messages)
@@ -182,7 +183,7 @@ Guidelines:
                 st.session_state.show_enrollment = True
                 st.rerun()
 
-# Enrollment Form (rest of the form code remains the same)
+# Enrollment Form
 if st.session_state.show_enrollment:
     st.markdown("---")
     st.header("🎓 Enrollment Form")
