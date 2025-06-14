@@ -15,7 +15,12 @@ try:
         google_api_key=api_key,
         temperature=0.5
     )
-except:
+    st.success("✅ Gemini API connected successfully!")
+except KeyError:
+    st.error("❌ GEMINI_API_KEY not found in secrets. Please add it to your secrets.toml file.")
+    llm = None
+except Exception as e:
+    st.error(f"❌ Error initializing Gemini API: {str(e)}")
     llm = None
 
 # Load website content using WebBaseLoader
@@ -39,6 +44,37 @@ website_docs = load_website_content()
 website_content = ""
 if website_docs:
     website_content = "\n".join([doc.page_content for doc in website_docs])
+    st.success(f"✅ Loaded {len(website_docs)} chunks from Datacrumbs website!")
+else:
+    st.warning("⚠️ Could not load website content. Using fallback data.")
+    # Fallback content about Datacrumbs
+    website_content = """
+    DATACRUMBS INFORMATION:
+    
+    Datacrumbs is a data science and analytics training institute.
+    
+    COURSES OFFERED:
+    - Data Science Bootcamp
+    - Data Analytics Bootcamp  
+    - Business Intelligence Bootcamp
+    - GenAI Bootcamp (Generative AI)
+    - Ultimate Python Bootcamp
+    - SQL Zero to Hero
+    - Excel for Everyone
+    
+    FEATURES:
+    - Industry-ready curriculum
+    - Hands-on projects
+    - Certification upon completion
+    - Internship opportunities
+    - Career placement assistance
+    - Live mentorship sessions
+    - Community support
+    
+    CONTACT:
+    Website: datacrumbs.org
+    Email: help@datacrumbs.org
+    """
 
 # Page config
 st.set_page_config(page_title="Datacrumbs Chatbot", page_icon="🤖")
@@ -71,22 +107,14 @@ if prompt:
     with st.chat_message("assistant"):
         if llm:
             try:
-                # Create a helpful system message that uses website content but isn't overly restrictive
-                if website_content:
-                    system_msg = SystemMessage(content=f"""
-You are a helpful virtual assistant for Datacrumbs. Use the following website information to answer questions about Datacrumbs courses, services, and information. 
+                # Create a helpful system message
+                system_msg = SystemMessage(content=f"""
+You are a helpful virtual assistant for Datacrumbs. Use the following information to answer questions about Datacrumbs courses, services, and general data science topics.
 
-If you have relevant information from the website content below, use it to provide a helpful answer. If the specific information isn't available in the website content, you can provide general helpful responses while mentioning that for detailed information they should visit datacrumbs.org.
-
-DATACRUMBS WEBSITE CONTENT:
+DATACRUMBS INFORMATION:
 {website_content}
 
-Be helpful, friendly, and informative in your responses.
-""")
-                else:
-                    system_msg = SystemMessage(content="""
-You are a helpful virtual assistant for Datacrumbs. Answer questions about data science, courses, and learning as best you can. 
-For specific Datacrumbs information, direct users to visit datacrumbs.org or contact help@datacrumbs.org.
+Answer questions helpfully using this information. If asked about specific details not covered above, mention that users can visit datacrumbs.org for more information.
 """)
                 
                 messages = [system_msg, HumanMessage(content=prompt)]
@@ -95,11 +123,39 @@ For specific Datacrumbs information, direct users to visit datacrumbs.org or con
                 st.session_state.messages.append(AIMessage(content=response.content))
                 
             except Exception as e:
-                st.error(f"Error: {str(e)}")
-                fallback_msg = "I'm having trouble accessing my knowledge right now. Please visit datacrumbs.org for information about our courses and services."
-                st.write(fallback_msg)
-                st.session_state.messages.append(AIMessage(content=fallback_msg))
+                st.error(f"Gemini API Error: {str(e)}")
+                # Provide a basic response without API
+                basic_response = f"""
+I can help you with information about Datacrumbs! Here's what I know:
+
+Datacrumbs offers various data science and analytics courses including:
+- Data Science Bootcamp
+- Data Analytics Bootcamp
+- Python and SQL courses
+- GenAI (Generative AI) training
+
+For detailed information about pricing, schedules, and enrollment, please visit datacrumbs.org or contact help@datacrumbs.org.
+
+Your question was: "{prompt}"
+"""
+                st.write(basic_response)
+                st.session_state.messages.append(AIMessage(content=basic_response))
         else:
-            error_msg = "API configuration needed. Please contact help@datacrumbs.org for assistance."  
-            st.write(error_msg)
-            st.session_state.messages.append(AIMessage(content=error_msg))
+            # Provide basic response when API is not configured
+            basic_response = f"""
+I can help with basic information about Datacrumbs:
+
+Datacrumbs offers data science and analytics training with courses like:
+- Data Science Bootcamp
+- Data Analytics Bootcamp  
+- Python, SQL, and Excel courses
+- GenAI (Generative AI) training
+
+Features include hands-on projects, certifications, and career placement assistance.
+
+For complete details, visit datacrumbs.org or contact help@datacrumbs.org.
+
+Your question: "{prompt}"
+"""
+            st.write(basic_response)
+            st.session_state.messages.append(AIMessage(content=basic_response))
