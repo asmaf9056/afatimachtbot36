@@ -41,10 +41,10 @@ if website_docs:
     website_content = "\n".join([doc.page_content for doc in website_docs])
 
 # Page config
-st.set_page_config(page_title="Datacrumbs Virtual Assistant", page_icon="🤖")
+st.set_page_config(page_title="Datacrumbs Chatbot", page_icon="🤖")
 
 # Simple UI
-st.title("datacrumbs.org")
+st.title("Datacrumbs Chatbot")
 st.subheader("I'll be your virtual assistant today...")
 
 # Initialize chat history
@@ -67,20 +67,26 @@ if prompt:
     with st.chat_message("user"):
         st.write(prompt)
     
-    # Generate response only from website content
+    # Generate response using website content and Gemini
     with st.chat_message("assistant"):
-        if llm and website_content:
+        if llm:
             try:
-                # Create a strict system message to only use website content
-                system_msg = SystemMessage(content=f"""
-You are a virtual assistant for Datacrumbs. You can ONLY answer questions using the information provided from the Datacrumbs website below. 
+                # Create a helpful system message that uses website content but isn't overly restrictive
+                if website_content:
+                    system_msg = SystemMessage(content=f"""
+You are a helpful virtual assistant for Datacrumbs. Use the following website information to answer questions about Datacrumbs courses, services, and information. 
 
-If a question cannot be answered from this website content, politely say that you can only provide information available on the Datacrumbs website and suggest they visit datacrumbs.org or contact help@datacrumbs.org for more details.
+If you have relevant information from the website content below, use it to provide a helpful answer. If the specific information isn't available in the website content, you can provide general helpful responses while mentioning that for detailed information they should visit datacrumbs.org.
 
 DATACRUMBS WEBSITE CONTENT:
 {website_content}
 
-Answer the user's question using only this information.
+Be helpful, friendly, and informative in your responses.
+""")
+                else:
+                    system_msg = SystemMessage(content="""
+You are a helpful virtual assistant for Datacrumbs. Answer questions about data science, courses, and learning as best you can. 
+For specific Datacrumbs information, direct users to visit datacrumbs.org or contact help@datacrumbs.org.
 """)
                 
                 messages = [system_msg, HumanMessage(content=prompt)]
@@ -89,10 +95,11 @@ Answer the user's question using only this information.
                 st.session_state.messages.append(AIMessage(content=response.content))
                 
             except Exception as e:
-                fallback_msg = "I can only provide information available on the Datacrumbs website. Please visit datacrumbs.org or contact help@datacrumbs.org for more information."
+                st.error(f"Error: {str(e)}")
+                fallback_msg = "I'm having trouble accessing my knowledge right now. Please visit datacrumbs.org for information about our courses and services."
                 st.write(fallback_msg)
                 st.session_state.messages.append(AIMessage(content=fallback_msg))
         else:
-            fallback_msg = "I can only provide information available on the Datacrumbs website. Please visit datacrumbs.org or contact help@datacrumbs.org for more information."
-            st.write(fallback_msg)
-            st.session_state.messages.append(AIMessage(content=fallback_msg))
+            error_msg = "API configuration needed. Please contact help@datacrumbs.org for assistance."  
+            st.write(error_msg)
+            st.session_state.messages.append(AIMessage(content=error_msg))
