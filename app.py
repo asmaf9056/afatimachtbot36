@@ -6,6 +6,68 @@ import time
 # Page config
 st.set_page_config(page_title="Datacrumbs Chatbot", page_icon="🤖")
 
+# Auto-scroll JavaScript function
+def add_auto_scroll():
+    st.markdown("""
+    <script>
+    function smoothScrollToBottom() {
+        setTimeout(function() {
+            const chatContainer = window.parent.document.querySelector('[data-testid="stChatMessageContainer"]');
+            if (chatContainer) {
+                const lastMessage = chatContainer.lastElementChild;
+                if (lastMessage) {
+                    lastMessage.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'end',
+                        inline: 'nearest'
+                    });
+                }
+            } else {
+                // Fallback: scroll to bottom of page
+                window.parent.scrollTo({
+                    top: window.parent.document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
+    }
+    
+    // Auto-scroll when new content is added
+    smoothScrollToBottom();
+    </script>
+    """, unsafe_allow_html=True)
+
+# Auto-scroll JavaScript function
+def add_auto_scroll():
+    st.markdown("""
+    <script>
+    function smoothScrollToBottom() {
+        setTimeout(function() {
+            const chatContainer = window.parent.document.querySelector('[data-testid="stChatMessageContainer"]');
+            if (chatContainer) {
+                const lastMessage = chatContainer.lastElementChild;
+                if (lastMessage) {
+                    lastMessage.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'end',
+                        inline: 'nearest'
+                    });
+                }
+            } else {
+                // Fallback: scroll to bottom of page
+                window.parent.scrollTo({
+                    top: window.parent.document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
+    }
+    
+    // Auto-scroll when new content is added
+    smoothScrollToBottom();
+    </script>
+    """, unsafe_allow_html=True)
+
 # Load API key
 api_key = None
 try:
@@ -176,6 +238,12 @@ Be concise and actionable.""")
         st.write(response_text)
         st.session_state.messages.append(AIMessage(content=response_text))
         
+        # Add auto-scroll after response
+        add_auto_scroll()
+        
+        # Add auto-scroll after response
+        add_auto_scroll()
+        
         # Show enrollment button for enrollment intent
         if user_wants_to_enroll:
             st.markdown("---")
@@ -249,6 +317,12 @@ if st.session_state.show_enrollment:
                 
                 **Contact:** help@datacrumbs.org for any queries
                 """)
+                
+                # Add auto-scroll after form submission
+                add_auto_scroll()
+                
+                # Add auto-scroll after form submission
+                add_auto_scroll()
                 
                 # Reset form
                 if st.button("🔄 Submit Another Enrollment"):
