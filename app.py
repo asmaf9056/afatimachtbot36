@@ -73,9 +73,57 @@ if prompt:
     with st.chat_message("user"):
         st.write(prompt)
     
-    # Check if user wants to enroll
-    enrollment_keywords = ["enroll", "enrollment", "register", "sign up", "join course", "pay fee", "reserve spot", "book course"]
-    wants_to_enroll = any(keyword in prompt.lower() for keyword in enrollment_keywords)
+    # More specific enrollment intent detection
+    def wants_to_enroll(text):
+        text_lower = text.lower()
+        
+        # Strong enrollment intent phrases
+        strong_intent = [
+            "i want to enroll",
+            "i want to register",
+            "i want to sign up",
+            "i want to join",
+            "how do i enroll",
+            "how do i register", 
+            "how do i sign up",
+            "how do i join",
+            "can i enroll",
+            "can i register",
+            "can i sign up",
+            "can i join",
+            "let me enroll",
+            "let me register",
+            "help me enroll",
+            "help me register",
+            "start enrollment",
+            "begin enrollment",
+            "proceed with enrollment",
+            "ready to enroll",
+            "ready to register"
+        ]
+        
+        # Check for strong intent first
+        if any(phrase in text_lower for phrase in strong_intent):
+            return True
+            
+        # Check for action words + course words
+        action_words = ["take", "join", "start", "begin", "do"]  
+        course_words = ["course", "bootcamp", "program", "training"]
+        
+        has_action = any(word in text_lower for word in action_words)
+        has_course = any(word in text_lower for word in course_words)
+        
+        if has_action and has_course:
+            # Additional check - avoid informational questions
+            info_words = ["what", "how", "when", "where", "why", "tell me", "explain", "about"]
+            is_info_question = any(word in text_lower for word in info_words)
+            
+            # Only return True if it's not clearly an informational question
+            return not is_info_question
+            
+        return False
+    
+    user_wants_to_enroll = wants_to_enroll(prompt)
     
     # Generate response
     with st.chat_message("assistant"):
@@ -86,9 +134,9 @@ You are a helpful virtual assistant for Datacrumbs. Use this information:
 
 {datacrumbs_info}
 
-If user asks about enrollment, registration, or wants to join a course, tell them you can help them with enrollment and ask if they'd like to fill out the enrollment form.
+Answer questions about courses and data science topics helpfully.
 
-Answer other questions about courses and data science topics helpfully.
+Only if the user explicitly expresses intent to enroll, register, or join a course (not just asking about enrollment), mention that you can help them with the enrollment form.
 """)
                 
                 messages = [system_msg, HumanMessage(content=prompt)]
@@ -97,22 +145,24 @@ Answer other questions about courses and data science topics helpfully.
                 st.write(response.content)
                 st.session_state.messages.append(AIMessage(content=response.content))
                 
-                # Show enrollment button if user wants to enroll
-                if wants_to_enroll:
+                # Show enrollment button only for clear enrollment intent
+                if user_wants_to_enroll:
                     if st.button("📝 Fill Enrollment Form"):
                         st.session_state.show_enrollment = True
                         st.rerun()
                 
             except Exception as e:
-                st.write("I can help you with information about Datacrumbs courses. For enrollment, I can show you the enrollment form.")
-                if wants_to_enroll:
+                st.write("I can help you with information about Datacrumbs courses.")
+                if user_wants_to_enroll:
+                    st.write("I can also help you with enrollment if you're ready to join a course.")
                     if st.button("📝 Fill Enrollment Form"):
                         st.session_state.show_enrollment = True
                         st.rerun()
         else:
             # Fallback without API
-            st.write("I can help you with information about Datacrumbs courses and enrollment.")
-            if wants_to_enroll:
+            st.write("I can help you with information about Datacrumbs courses.")
+            if user_wants_to_enroll:
+                st.write("I can also help you with enrollment if you're ready to join a course.")
                 if st.button("📝 Fill Enrollment Form"):
                     st.session_state.show_enrollment = True
                     st.rerun()
@@ -193,4 +243,3 @@ if st.session_state.show_enrollment:
     if st.button("❌ Close Enrollment Form"):
         st.session_state.show_enrollment = False
         st.rerun()
-   
