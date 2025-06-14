@@ -12,15 +12,15 @@ st.set_page_config(page_title="Datacrumbs Chatbot", page_icon="🤖")
 
 # Load API key from secrets
 try:
-    api_key = st.secrets["GEMINI_API_KEY"]
+    api_key = st.secrets["GOOGLE_API_KEY"]  # Changed from GEMINI_API_KEY
     llm = ChatGoogleGenerativeAI(
-        model="gemini-pro",
+        model="gemini-1.5-pro",  # Changed from gemini-pro
         google_api_key=api_key,
         temperature=0.5
     )
     st.success("✅ Gemini API connected successfully!")
 except KeyError:
-    st.error("❌ GEMINI_API_KEY not found in secrets. Please add it to your secrets.toml file.")
+    st.error("❌ GOOGLE_API_KEY not found in secrets. Please add it to your secrets.toml file.")
     llm = None
 except Exception as e:
     st.error(f"❌ Error initializing Gemini API: {str(e)}")
